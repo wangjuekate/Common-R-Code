@@ -16,22 +16,22 @@ names<-rownames(input)
 final<-matrix("",nrow=nrow(input)*2,ncol=2)
 j=1
 for(i in 1:nrow(input)){
-st<-paste("(",round(as.numeric(as.matrix(input[i,2])),digits=5),")",sep="")
+st<-paste("(",round(as.numeric(as.matrix(input[i,2])),digits=3),")",sep="")
 if(!is.na(input[i,4])){
 if(as.numeric(input[i,4])<=0.001){
-coe<-paste(round(as.numeric(input[i,1]),digits=5),"***",sep="")
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"***",sep="")
 }
 if(as.numeric(input[i,4]<=0.01&as.numeric(input[i,4])>0.001 )){
-coe<-paste(round(as.numeric(input[i,1]),digits=5),"**",sep="")
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"**",sep="")
 }
 if(as.numeric(input[i,4]<=0.05&&as.numeric(input[i,4])>0.01)){
-coe<-paste(round(as.numeric(input[i,1]),digits=5),"*",sep="")
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"*",sep="")
 }
 if(as.numeric(input[i,4]<=0.1&&as.numeric(input[i,4])>0.05)){
-coe<-paste(round(as.numeric(input[i,1]),digits=5),"+",sep="")
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"+",sep="")
 }
 if(as.numeric(input[i,4])>0.1){
-coe<-round(as.numeric(input[i,1]),digits=5)}
+coe<-round(as.numeric(input[i,1]),digits=3)}
 }else{
 coe<-"NA"
 }
@@ -44,13 +44,11 @@ return(final)
 }
 
 
-mm<-summary(m1)
+mm<-summary(results)
 print.xtable(xtable(
-rbind(data.frame(cleardata(mm$coefficients$count)),
-data.frame(cleardata(mm$coefficients$zero)),
-data.frame(cbind("Obs.",sum( mm$n))),
-data.frame(cbind("log lik.", round( 
-as.numeric(as.matrix(mm$loglik) ),digits=2) ))
+rbind(data.frame(cleardata(mm$solutions)),
+data.frame(cbind("Obs.",nrow(fulldata))),
+data.frame(cbind("DIC",mm$DIC ))
 )
 )
 ,type="html",file="numfundingzipsubset1.html")

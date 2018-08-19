@@ -16,21 +16,21 @@ names<-rownames(input)
 final<-matrix("",nrow=nrow(input)*2,ncol=2)
 j=1
 for(i in 1:nrow(input)){
-st<-paste("(",round(as.numeric(as.matrix(input[i,2])),digits=3),")",sep="")
-if(!is.na(input[i,4])){
-if(as.numeric(input[i,4])<=0.001){
+st<-paste("(",round(as.numeric(as.matrix(input[i,2])),digits=3),",",round(as.numeric(as.matrix(input[i,3])),digits=3),")",sep="")
+if(!is.na(input[i,5])){
+if(as.numeric(input[i,5])<=0.001){
 coe<-paste(round(as.numeric(input[i,1]),digits=3),"***",sep="")
 }
-if(as.numeric(input[i,4]<=0.01&as.numeric(input[i,4])>0.001 )){
+if(as.numeric(input[i,5]<=0.01&as.numeric(input[i,5])>0.001 )){
 coe<-paste(round(as.numeric(input[i,1]),digits=3),"**",sep="")
 }
-if(as.numeric(input[i,4]<=0.05&&as.numeric(input[i,4])>0.01)){
+if(as.numeric(input[i,5]<=0.05&&as.numeric(input[i,5])>0.01)){
 coe<-paste(round(as.numeric(input[i,1]),digits=3),"*",sep="")
 }
-if(as.numeric(input[i,4]<=0.1&&as.numeric(input[i,4])>0.05)){
+if(as.numeric(input[i,5]<=0.1&&as.numeric(input[i,5])>0.05)){
 coe<-paste(round(as.numeric(input[i,1]),digits=3),"+",sep="")
 }
-if(as.numeric(input[i,4])>0.1){
+if(as.numeric(input[i,5])>0.1){
 coe<-round(as.numeric(input[i,1]),digits=3)}
 }else{
 coe<-"NA"

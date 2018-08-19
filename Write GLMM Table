@@ -1,1 +1,13 @@
 
+
+
+mm<-summary(m1)
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$coefficients$count)),
+data.frame(cleardata(mm$coefficients$zero)),
+data.frame(cbind("Obs.",sum( mm$n))),
+data.frame(cbind("log lik.", round( 
+as.numeric(as.matrix(mm$loglik) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")

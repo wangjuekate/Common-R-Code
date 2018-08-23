@@ -43,6 +43,39 @@ return(final)
 }
 
 
+cleardata<-function(input){
+names<-rownames(input)
+final<-matrix("",nrow=nrow(input)*2,ncol=2)
+j=1
+for(i in 1:nrow(input)){
+st<-paste("(",round(as.numeric(as.matrix(input[i,2])),digits=3),")",sep="")
+if(!is.na(input[i,4])){
+if(as.numeric(input[i,4])<=0.001){
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"***",sep="")
+}
+if(as.numeric(input[i,4]<=0.01&as.numeric(input[i,4])>0.001 )){
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"**",sep="")
+}
+if(as.numeric(input[i,4]<=0.05&&as.numeric(input[i,4])>0.01)){
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"*",sep="")
+}
+if(as.numeric(input[i,4]<=0.1&&as.numeric(input[i,4])>0.05)){
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"+",sep="")
+}
+if(as.numeric(input[i,4])>0.1){
+coe<-round(as.numeric(input[i,1]),digits=3)}
+}else{
+coe<-"NA"
+}
+final[j,1]<-names[i]
+final[j,2]<-coe
+final[j+1,2]<-st
+j<-j+2
+}
+return(final)
+}
+
+
 # write zero inflation model
 mm<-summary(results1)
 print.xtable(xtable(

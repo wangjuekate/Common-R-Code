@@ -1,0 +1,84 @@
+x<-read.table("Interaction.csv",sep=",",header=TRUE)
+
+lineone<-x[which(x$protests==0),]
+linetwo<-x[which(x$protests==2),]
+
+install.packages("grDevices")
+library(grDevices)
+cairo_pdf("test.pdf",8.3,6.2,family ="CMU Serif")
+dev.set()
+plot(x=lineone$compete,y= lineone$Margins,type='n', ylim=c(0.1,0.5),ylab='Log regulation similarity',
+xlab='Geographic Similarity',xaxt='n',yaxt='n')
+grid()
+for (i in 1:nrow(lineone)){
+points(lineone$compete[i],lineone$Higher[i],pch="-",lwd=2)
+points(lineone$compete[i],lineone$Lower[i],pch="-",lwd=2)
+segments(lineone$compete[i],lineone$Higher[i],lineone$compete[i],lineone$Lower[i],
+col='black',lty=1 ,lwd=2)
+}
+
+for (i in 1:nrow(lineone)){
+points(linetwo$compete[i],linetwo$Higher[i],pch="-",lwd=2)
+points(linetwo$compete[i],linetwo$Lower[i],pch="-",lwd=2)
+segments(linetwo$compete[i],linetwo$Higher[i],linetwo$compete[i],linetwo$Lower[i],
+col=rgb(0.5,0.5,0.5,0.5),lty=1 ,lwd=2)
+}
+
+lines(x=lineone$compete,y= lineone$Margins,lty=1,col='black')
+lines(x=lineone$compete,y= linetwo$Margins,lty=2,col=rgb(0.5,0.5,0.5,0.5))
+axis(side =1, at= c(1:4)/10,labels=c(1:4)/10)
+axis(side =2, at= c(1:5)/10,labels=c(1:5)/10)
+
+legend('topright',legend= c(' Social Protests =0 ',
+' Social Protests =2 '),
+col=c('black',rgb(0.5,0.5,0.5,0.5) ), lty=c(1,2),cex=0.9)
+
+dev.off()
+
+#flow chart
+install.packages("diagram")
+library(diagram)
+openplotmat()
+elpos<-coordinates(c(3,4,1))
+straightarrow(from=elpos[1,], to=elpos[4,])
+treearrow(from=elpos[1:2,], to=elpos[5,])
+straightarrow(from=elpos[2,], to=elpos[7,])
+straightarrow(from=elpos[3,], to=elpos[6,])
+straightarrow(from=elpos[4,], to=elpos[8,])
+straightarrow(from=elpos[5,], to=elpos[8,])
+straightarrow(from=elpos[6,], to=elpos[5,])
+straightarrow(from=elpos[7,], to=elpos[8,])
+
+textempty(elpos[1,],lab="Established industries",cex=1)
+textempty(elpos[2,],lab="SMOs",cex=1)
+textempty(elpos[3,],lab="New Firms",cex=1)
+textrect(elpos[4,],0.1,0.05,lab="0.02",cex=1.5)
+textrect(elpos[5,],0.1,0.05,lab="-0.45",cex=1.5)
+textrect(elpos[6,],0.1,0.05,lab="0.08",cex=1.5)
+textrect(elpos[7,],0.1,0.05,lab="0.8",cex=1.5)
+textempty(elpos[8,],lab="Regulation Similarity",cex=1)
+
+#R draw figures
+install.packages("png")
+library(png)
+x<-as.raster(readPNG("figure2.png"))
+dev.set()
+plot(1:10,ylim=c(1,10),ty="n",xlab="",ylab="",xaxt='n',yaxt='n',bty="n")
+rasterImage(x,2,2,4,4)
+dev.off()
+
+
+
+mtext(side=1,line=2,text='work')
+
+polygon(c(rev(lineone$compete),lineone$compete),
+c(rev(lineone$Higher),lineone$Lower),col=rgb(0.9,0.9,0.9,0.5),border=NA)
+
+polygon(c(rev(linetwo$compete),linetwo$compete),
+c(rev(linetwo$Higher),linetwo$Lower),col=rgb(0.9,0.9,0.9,0.5),border=NA)\
+
+
+#draw text and rectangles
+plot()
+rect()
+text(center coordinate, labels ="words")

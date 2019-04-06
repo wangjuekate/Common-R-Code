@@ -1,0 +1,137 @@
+
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+import time
+from bs4 import BeautifulSoup
+import requests
+import json
+import csv
+from xlrd import open_workbook
+import pdfminer
+from xlrd import open_workbook
+import csv
+from selenium.common.exceptions import NoSuchElementException
+from cStringIO import StringIO
+import re
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from PyPDF2 import PdfFileWriter, PdfFileReader
+from pdfminer.pdfpage import PDFPage
+import PyPDF2
+import dateutil.parser
+import re
+import os
+import urllib
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import glob
+from bs4.element import Comment
+
+browser = webdriver.Firefox()
+#browser = webdriver.Chrome("C:/Users/Jue Wang/Downloads/chromedriver.exe")
+book = open_workbook('C:/Users/Jue Wang/Downloads/nonprofit.xlsx')
+
+browser.get('http://foundationcenter.org/find-funding/990-finder')
+time.sleep(5)
+
+for i in range(5,200):
+    print i
+    sheet1 = book.sheet_by_index(0)
+    name = sheet1.cell(i, 0).value
+    # clean up the website
+
+    print name
+    search =browser.find_element_by_xpath('//*[@id="address-77e6aa14f39409b45250e304835dac00-5fac7f34136625b2af6ad7a5a9417e13"]/div/div/div/div/div[1]/div/div/div/div[2]/form/ul/li[2]/input')
+    search.clear()
+    search.send_keys(name)
+    htmlElem = browser.find_element_by_xpath('//*[@id="address-77e6aa14f39409b45250e304835dac00-5fac7f34136625b2af6ad7a5a9417e13"]/div/div/div/div/div[1]/div/div/div/div[2]/form/ul/li[8]/input')
+    htmlElem.click()
+    time.sleep(5)
+    soup = BeautifulSoup(browser.page_source)
+    sources = soup.find_all('tr')
+    for tag in sources[1:len(sources)]:
+        results = tag.find_all('td')
+        output = []
+        for s in results:
+            finaloutput =s.text.encode('utf-8')
+            output.append(finaloutput)
+        f = open('C:/Users/Jue Wang/Downloads/Nonprofit.txt', 'a')
+        json.dump(output, f)
+    goback = browser.find_element_by_xpath('//*[@id="form1"]/p[3]/a').click()
+
+    time.sleep(5)
+    
+    
+    
+    from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+import time
+from bs4 import BeautifulSoup
+import requests
+import json
+import csv
+from xlrd import open_workbook
+import pdfminer
+from xlrd import open_workbook
+import csv
+from selenium.common.exceptions import NoSuchElementException
+from cStringIO import StringIO
+import re
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from PyPDF2 import PdfFileWriter, PdfFileReader
+from pdfminer.pdfpage import PDFPage
+import PyPDF2
+import dateutil.parser
+import re
+import os
+import urllib
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import glob
+from bs4.element import Comment
+
+
+browser = webdriver.Chrome("C:/Users/Jue Wang/Downloads/chromedriver.exe")
+book = open_workbook('D:/Nonprofit/EIN.xlsx')
+
+for i in range(100, 200):
+    print i
+    sheet1 = book.sheet_by_index(0)
+    EIN = sheet1.cell(i, 0).value
+    print EIN
+    browser.get('https://www.charitynavigator.org/')
+    time.sleep(5)
+    search = browser.find_element_by_xpath('//*[@id="keyword_list"]')
+    search.clear()
+    search.send_keys(EIN)
+    htmlElem = browser.find_element_by_xpath('//*[@id="btnSrchSubmit"]').click()
+    time.sleep(5)
+
+
+
+    output= []
+    try:
+        button = browser.find_element_by_xpath('//*[@ id = "searchresults"] /table[1] /tbody /tr/td[2] //p/a').click()
+        time.sleep(5)
+        address = browser.find_element_by_xpath('//*[@id="summary"]/div[2]/div/div/table/tbody/tr[4]/td[2]').text.encode('utf-8')
+        output.append(EIN)
+        output.append(address)
+        f = open('C:/Users/Jue Wang/Downloads/NonprofitLocation.txt', 'a')
+        json.dump(output, f)
+    except:
+        print "wrong"

@@ -1,0 +1,66 @@
+###select data out###
+SELECT DOCID,ZIP,STFIP,STATE,FIRMNAME INTO output
+FROM newdata3
+WHERE FIRMNAME Is Null;
+
+
+
+##search text in the data set###
+SELECT newdata3.*
+FROM newdata3
+WHERE (newdata3.FIRMNAME Like “Ama*”);
+
+
+# Clean Drone Data
+
+SELECT FOUNDING_MONTH
+FROM newdata4
+WHERE (FOUNDING_MONTH Is Null);
+
+
+#Merge join the data
+SELECT newdata3.*, [Text].* INTO newdata4
+FROM newdata3 LEFT JOIN [Text] ON newdata3.DOCID = [Text].DOCID;
+
+#select data
+
+UPDATE
+      newdata4
+SET
+      newdata4.FOUNDING_YEAR= newdata4.fy
+WHERE
+      newdata4.FOUNDING_YEAR Is Null;
+
+
+
+
+#######################delete prior column
+ALTER TABLE newdata3 DROP COLUMN Appyear;
+
+
+#########
+
+SElECT COMPANY_SIZE
+FROM newdata3
+WHERE COMPANY_SIZE Is NULL;
+
+#merge with exemption
+SELECT newdata2.*, [EXEMPT_1].* INTO newdata3
+FROM newdata2 LEFT JOIN [EXEMPT_1] ON newdata2.DOCID = [EXEMPT_1].DocID;
+
+#UPDATE NAME
+UPDATE
+      newdata3
+SET
+      newdata3.Name= newdata3.FIRMNAME
+WHERE
+      newdata3.Name Is Null;
+
+
+#checking missing data
+SElECT Name
+FROM newdata3
+WHERE Name Is NULL;
+
+
+

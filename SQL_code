@@ -62,5 +62,26 @@ SElECT Name
 FROM newdata3
 WHERE Name Is NULL;
 
+##Alter table##
+ALTER TABLE Part_107
+  ADD Month text;
 
+
+
+UPDATE Part_107 
+SET 
+    Field1 = 2019;
+
+
+#bind rows of two tables
+SELECT *
+INTO Foo
+FROM(
+SELECT *
+FROM Part_107 
+INTO dummy
+UNION
+SELECT * 
+FROM Part_107_2018
+)
 

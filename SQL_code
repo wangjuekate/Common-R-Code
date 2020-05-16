@@ -68,10 +68,13 @@ ALTER TABLE Part_107
 
 
 
-UPDATE Part_107 
+UPDATE Part
 SET 
-    Field1 = 2019;
+   Year = 2019;
 
+UPDATE Part
+SET 
+   Month ="Jan-Mar";
 
 #bind rows of two tables
 SELECT *
@@ -79,7 +82,6 @@ INTO Foo
 FROM(
 SELECT *
 FROM Part_107 
-INTO dummy
 UNION
 SELECT * 
 FROM Part_107_2018

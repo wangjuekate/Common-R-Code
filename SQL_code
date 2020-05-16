@@ -90,7 +90,7 @@ FROM Part_107_2018
 
 #get the intersection
 
-SELECT * INTO output(
+SELECT * INTO output FROM(
 SELECT ID,Postal_Code,Registration_Count,Year,State_Province_Region 
   FROM Register_2016_2019
  WHERE Register_2016_2019.State_Province_Region IN (SELECT state_id FROM Zip_COUNTY_STATE_FIPS)

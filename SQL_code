@@ -96,3 +96,10 @@ SELECT ID,Postal_Code,Registration_Count,Year,State_Province_Region
  WHERE Register_2016_2019.State_Province_Region IN (SELECT state_id FROM Zip_COUNTY_STATE_FIPS)
 )
 
+#one to many merge
+SELECT * INTO GEOID FROM(
+SELECT *
+ FROM Zip_COUNTY_STATE_FIPS,state
+ WHERE Zip_COUNTY_STATE_FIPS.state_id=[state].State_Abbreviation
+)
+ 

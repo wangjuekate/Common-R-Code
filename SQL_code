@@ -97,9 +97,9 @@ SELECT ID,Postal_Code,Registration_Count,Year,State_Province_Region
 )
 
 #one to many merge
-SELECT * INTO GEOID FROM(
-SELECT *
- FROM Zip_COUNTY_STATE_FIPS,state
- WHERE Zip_COUNTY_STATE_FIPS.state_id=[state].State_Abbreviation
-)
- 
+SELECT * INTO GEO FROM(
+SELECT * 
+FROM Zip_COUNTY_STATE_FIPS,state 
+WHERE Zip_COUNTY_STATE_FIPS.state_id=[state].State_Abbreviation)
+
+

@@ -102,4 +102,7 @@ SELECT *
 FROM Zip_COUNTY_STATE_FIPS,state 
 WHERE Zip_COUNTY_STATE_FIPS.state_id=[state].State_Abbreviation)
 
-
+SELECT * INTO output FROM(
+SELECT Register_2016_2019.Registration_Count, Register_2016_2019.Year, Register_2016_2019.ZIP, Register_2016_2019.State_Province_Region,GEO.zip, GEO.state_id, GEO.county_fips, GEO.FIPS_Code
+FROM Register_2016_2019,GEO
+WHERE Register_2016_2019.ZIP=[GEO].zip AND Register_2016_2019.State_Province_Region=[GEO].state_id)

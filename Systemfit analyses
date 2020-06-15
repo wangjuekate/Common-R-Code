@@ -1,0 +1,16 @@
+libraray(systemfit)
+eqDemand <- promo~allantisurv_p+lognhobbyist+
+                loggdp+unemploymentrate +inst6014_nom+
+                newspapernumpercap+diversity +  testsites +
+                collegepercap+totalpop_new+drone_military_base
+eqSupply <- constrain~allantisurv_p+lognhobbyist+
+                loggdp+unemploymentrate +inst6014_nom+
+                newspapernumpercap+diversity +  testsites +
+                collegepercap+totalpop_new+drone_military_base
+system <- list( demand = eqDemand, supply = eqSupply )
+fitols <- systemfit( system, data = statepanel )
+
+
+# writing the table
+
+

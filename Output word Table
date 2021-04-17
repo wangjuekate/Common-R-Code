@@ -1,0 +1,46 @@
+createtable<-function(island, island_title, island_source_note ){
+
+islands_tbl <- 
+  tibble(
+    island
+  ) 
+
+gt_tbl <- gt(data = islands_tbl,
+             rowname_col = NULL,
+             getOption("gt.row_group.sep", ""))%>%tab_style(
+      style = list(
+        cell_borders(
+          sides = c("top", "bottom"),
+          color = "white",
+          weight = px(1)
+        ),
+        cell_borders(
+          sides = c("left", "right"),
+          color = "white",
+          weight = px(1)
+        )),
+          locations = cells_body(
+        columns = everything(),
+        rows = everything()
+      )
+      )
+
+gt_tbl <- 
+  gt_tbl %>%
+  tab_header(
+    title = island_title,
+  )
+
+
+gt_tbl <- 
+  gt_tbl %>%
+  tab_source_note(
+    source_note = island_source_note
+  ) 
+
+    
+    
+return(gt_tbl) 
+    
+}
+

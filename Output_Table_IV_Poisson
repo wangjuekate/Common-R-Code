@@ -1,0 +1,302 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
+
+library(stargazer)
+# Set directory - file path and import .csv-file 
+setwd("/Users/jjw6286/Downloads/Lori_Rewriten_Project/")
+
+statepanel<-read.table(
+    "StatePanel_20210331.csv",sep=",",
+    header=TRUE)
+
+write.table(statepanel,file="StatePanel_20210331.csv",sep=",",row.names=FALSE)
+
+
+
+# In[ ]:
+
+
+
+library(foreign)
+library(pscl)
+require(ffbase)
+require(LaF)
+require(ETLUtils)
+library(xtable)
+require(biglm)
+library(psych)
+library(xtable)
+library(gt)
+library(tibble)
+
+cleardata<-function(input){
+names<-rownames(input)
+final<-matrix("",nrow=nrow(input)*2,ncol=2)
+j=1
+for(i in 1:nrow(input)){
+st<-paste("(",round(as.numeric(as.matrix(input[i,2])),digits=2),")",sep="")
+if(!is.na(input[i,4])){
+if(as.numeric(input[i,4])<=0.001){
+coe<-paste(round(as.numeric(input[i,1]),digits=2),"***",sep="")
+}
+if(as.numeric(input[i,4]<=0.01&as.numeric(input[i,4])>0.001 )){
+coe<-paste(round(as.numeric(input[i,1]),digits=2),"**",sep="")
+}
+if(as.numeric(input[i,4]<=0.05&&as.numeric(input[i,4])>0.01)){
+coe<-paste(round(as.numeric(input[i,1]),digits=2),"*",sep="")
+}
+if(as.numeric(input[i,4]<=0.1&&as.numeric(input[i,4])>0.05)){
+coe<-paste(round(as.numeric(input[i,1]),digits=2),"+",sep="")
+}
+if(as.numeric(input[i,4])>0.1){
+coe<-round(as.numeric(input[i,1]),digits=2)}
+}else{
+coe<-"NA"
+}
+final[j,1]<-paste(names[i],"1")
+final[j+1,1]<-paste(names[i],"2")
+final[j,2]<-coe
+final[j+1,2]<-st
+j<-j+2
+}
+return(final)
+}
+
+createtable<-function(island, island_title, island_source_note ){
+
+    
+islands_tbl <- 
+  tibble(
+    island
+  ) 
+
+gt_tbl <- gt(data = islands_tbl,
+             rowname_col = NULL,
+             getOption("gt.row_group.sep", ""))%>%tab_style(
+      style = list(
+        cell_borders(
+          sides = c("top", "bottom"),
+          color = "white",
+          weight = px(1)
+        ),
+        cell_borders(
+          sides = c("left", "right"),
+          color = "white",
+          weight = px(1)
+        )),
+          locations = cells_body(
+        columns = everything(),
+        rows = everything()
+      )
+      )
+
+gt_tbl <- 
+  gt_tbl %>%
+  tab_header(
+    title = island_title,
+  )
+
+
+gt_tbl <- gt_tbl %>%
+  tab_source_note(
+    source_note = island_source_note
+  ) 
+  
+return(gt_tbl) 
+    
+}
+
+
+
+
+
+###########ʕ•́ᴥ•̀ʔっ##########regression model
+#First set of analyses on city laws
+
+r1 <- citybans_cp~gdpadj+
+                     popadj+
+                    democraticvote+
+                    logdronemanufacture+
+                    priorlaw+
+                    homerule+
+                    logapplication_p+
+                    as.factor(year)
+
+
+library(MASS)
+results1<-glm(r1,data = statepanel,family = "poisson")
+coefficient_adj1<-coeftest(results1,cluster1="fips")
+
+r2 <- citybans_cp~city_antisurv+
+                               gdpadj+
+                     popadj+
+                    democraticvote+
+                    logdronemanufacture+
+                    priorlaw+
+                    homerule+
+                    logapplication_p+
+                    as.factor(year)
+
+results2<-glm(r2,data = statepanel,family = "poisson")
+coefficient_adj2<-coeftest(results2,cluster1="fips")
+
+
+# In[ ]:
+
+
+###########≧◠ᴥ◠≦##################
+mm<-summary(results1)
+allstatistics<-rbind(cleardata(coefficient_adj1),
+                    c("Obs.", sum(mm$df[1:2]) ),
+                    c("Log lik.",round(logLik(results1),digit=2) ))
+
+modelformat<-data.frame(allstatistics)
+
+colnames(modelformat)[2]<-"(1)"
+
+mm<-summary(results2)
+allstatistics<-rbind(cleardata(coefficient_adj2),
+                c("Obs.", sum(mm$df[1:2]) ),
+                    c("Log lik.",round(logLik(results2),digit=2) ))
+
+modelformat2<-data.frame(allstatistics) 
+colnames(modelformat2)[2]<-"(2)"
+modelformat<-merge(modelformat,modelformat2, 
+                   by.x="X1", by.y ="X1", all=TRUE ) 
+modelformat[is.na(modelformat)] <- ""
+   
+NonIVmodel<-modelformat
+
+
+# In[ ]:
+
+
+###########ʕ•́ᴥ•̀ʔっ##################
+install.packages("ivreg")
+library(ivreg)
+
+
+
+
+###########ʕ•́ᴥ•̀ʔっ##################
+#Year fixed effect
+results1<-lm(city_antisurv~protests_5y+ drone_military_base+
+                      gdpadj+
+                     popadj+
+                    democraticvote+
+                    logdronemanufacture+
+                    priorlaw+
+                    homerule+
+                    logapplication_p+
+                    as.factor(year), data = statepanel)
+
+results2<- ivreg(logcitybans_serve~city_antisurv+
+                     gdpadj+
+                     popadj+
+                    democraticvote+
+                    logdronemanufacture+
+                    priorlaw+
+                    homerule+
+                    logapplication_p+
+                    as.factor(year)|protests_5y+
+                                drone_military_base+
+                     gdpadj+
+                     popadj+
+                    democraticvote+
+                    logdronemanufacture+
+                    priorlaw+
+                    homerule+
+                    logapplication_p+
+                    as.factor(year), data = statepanel)
+
+
+# In[ ]:
+
+
+###########≧◠ᴥ◠≦##################
+
+first<-summary(results1, vcov = sandwich,
+        cluster="fips", df = Inf,
+        diagnostics = TRUE, first=TRUE)
+second<-summary(results2, vcov = sandwich,
+        cluster="fips", df = Inf,
+        diagnostics = TRUE, first=TRUE)
+
+modelformat<-data.frame(rbind(
+                            cleardata(first$coefficients),
+                            c("Obs.", sum(first$df[1:2])),
+                            c("Adj R", round(first$adj.r.squared,digit=2))
+                             ) 
+                       )
+colnames(modelformat)[2]<-"(1)"
+
+modelformat2<-data.frame(rbind(
+                                cleardata(second$coefficients),
+                                cbind(rownames(second$diagnostics),
+                                      round(second$diagnostics[,3],digit=2)),
+                                c("Obs.",sum(first$df[1:2])),
+                                c("Adj R", round(second$adj.r.squared,digit=2))
+
+                                ) )
+
+colnames(modelformat2)[2]<-"(2)"
+
+modelformat<-merge(modelformat,modelformat2, 
+                   by.x="X1", by.y ="X1", all=TRUE ) 
+modelformat[is.na(modelformat)] <- ""
+
+IVmodelfixedyear<-modelformat
+
+
+# In[ ]:
+
+
+###########(ɔ◔‿◔)ɔ ♥##################
+#set up what the variable should look like
+
+#IVmodelfixedyear
+#NonIVmodel
+#IVmodel
+
+
+Final<-merge(NonIVmodel, IVmodelfixedyear, by.y = "X1", by.x = "X1", all=TRUE)
+Final[is.na(Final)] <- ""
+prefix <- "Model"
+suffix<-seq(1,(ncol(Final)-1))
+colnames(Final)<-c("label",paste(prefix,suffix))
+
+
+
+
+write.table(Final$label,
+            file="variablenames_adj.csv",
+            sep=",",
+            row.names=FALSE)
+    
+varname<-read.table("variablenames_set1.csv",sep=",",header=TRUE)
+
+printmodel<-merge(varname, Final,by.x = "label", by.y = "label",  all.x=TRUE, sort = F)   
+
+printmodel$label<-NULL
+colnames(printmodel)[1]<-" "
+
+title <-"Table Estimation of City Regulations"
+footnote<-"Note: Robust standard errors in parentheses (clustered at state level), *** p<0.01, ** p<0.05, * p<0.1 (two-tailed);Fixed Year Effect"
+basetable<-createtable(printmodel,title, footnote )
+
+basetable<-basetable%>%
+  tab_spanner(
+    label = "Negative Binomial",
+    columns = c("Model 1", "Model 2")
+  ) %>%
+  tab_spanner(
+    label = "IV OLS",
+    columns = c("Model 3", "Model 4")
+  )
+
+basetable
+

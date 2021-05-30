@@ -1,0 +1,390 @@
+## keep two digit after decimal point
+
+
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
+
+library(stargazer)
+# Set directory - file path and import .csv-file 
+setwd("/Users/jjw6286/Downloads/Lori_Rewriten_Project/")
+
+statepanel<-read.table(
+"StatePanel_20210331.csv",sep=",",
+header=TRUE)
+
+write.table(statepanel,file="StatePanel_20210331.csv",sep=",",row.names=FALSE)
+
+
+
+# In[ ]:
+
+
+
+library(foreign)
+library(pscl)
+require(ffbase)
+require(LaF)
+require(ETLUtils)
+library(xtable)
+require(biglm)
+library(psych)
+library(xtable)
+library(gt)
+library(tibble)
+
+cleardata<-function(input){
+names<-rownames(input)
+final<-matrix("",nrow=nrow(input)*2,ncol=2)
+j=1
+for(i in 1:nrow(input)){
+st<-paste("(",format(round(as.numeric(as.matrix(input[i,2])),digits=2),nsmall=2),")",sep="")
+if(!is.na(input[i,4])){
+if(as.numeric(input[i,4])<=0.001){
+coe<-paste(format(round(as.numeric(input[i,1]),digits=2),nsmall=2),"***",sep="")
+}
+if(as.numeric(input[i,4]<=0.01&as.numeric(input[i,4])>0.001 )){
+coe<-paste(format(round(as.numeric(input[i,1]),digits=2),nsmall=2),"**",sep="")
+}
+if(as.numeric(input[i,4]<=0.05&&as.numeric(input[i,4])>0.01)){
+coe<-paste(format(round(as.numeric(input[i,1]),digits=2),nsmall=2),"*",sep="")
+}
+if(as.numeric(input[i,4]<=0.1&&as.numeric(input[i,4])>0.05)){
+coe<-paste(format(round(as.numeric(input[i,1]),digits=2),nsmall=2),"+",sep="")
+}
+if(as.numeric(input[i,4])>0.1){
+coe<-format(round(as.numeric(input[i,1]),digits=2),nsmall=2)}
+}else{
+coe<-"NA"
+}
+final[j,1]<-paste(names[i],"1")
+final[j+1,1]<-paste(names[i],"2")
+final[j,2]<-coe
+final[j+1,2]<-st
+j<-j+2
+}
+return(final)
+}
+
+createtable<-function(island, island_title, island_source_note ){
+
+
+islands_tbl <- 
+tibble(
+island
+)
+
+gt_tbl <- gt(data = islands_tbl,
+rowname_col = NULL,
+getOption("gt.row_group.sep", ""))%>%tab_style(
+style = list(
+cell_borders(
+sides = c("top", "bottom"),
+color = "white",
+weight = px(1)
+),
+cell_borders(
+sides = c("left", "right"),
+color = "white",
+weight = px(1)
+)),
+locations = cells_body(
+columns = everything(),
+rows = everything()
+)
+)
+
+gt_tbl <- 
+gt_tbl %>%
+tab_header(
+title = island_title,
+)
+
+
+gt_tbl <- gt_tbl %>%
+tab_source_note(
+source_note = island_source_note
+)
+
+return(gt_tbl) 
+
+}
+
+
+
+
+
+###########ʕ•́ᴥ•̀ʔっ##########regression model
+#First set of analyses on city laws
+library(ipw)
+library(MASS)
+library(lmtest)
+library(CBPS)
+
+temp <- npCBPS(citybans_cp~
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p,
+data = statepanel, corprior=.1/nrow(statepanel))
+
+results<- glm(numlobbyist~
+
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p,
+data = statepanel,
+weight =temp$weights,
+family=quasipoisson())
+
+results1<- glm(numlobbyist~
+
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p,
+data = statepanel,
+weight =temp$weights,
+family=poisson())
+
+logliklihood<- logLik(results1)/summary(results)$dispersion
+
+
+
+first<-summary(results, vcov = sandwich,
+cluster=c("fips","year"), df = Inf,
+diagnostics = TRUE, first=TRUE)
+
+modelformat1<-data.frame(rbind(
+cleardata(first$coefficients),
+c("Obs.", sum(first$df[1:2])),
+c("Log lik.", round(logliklihood),digit=2)
+)
+)
+
+
+
+
+results<- glm(numlobbyist~
+citybans_cp_lag+
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p,
+data = statepanel,
+weight =temp$weights,
+family=quasipoisson())
+
+results1<-glm(numlobbyist~
+citybans_cp_lag+
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p,
+data = statepanel,
+weight =temp$weights
+, family = poisson())
+logliklihood<- logLik(results1)/summary(results)$dispersion
+
+first<-summary(results, vcov = sandwich,
+cluster=c("fips","year"), df = Inf,
+diagnostics = TRUE, first=TRUE)
+
+
+
+modelformat2<-data.frame(rbind(
+cleardata(first$coefficients),
+c("Obs.", sum(first$df[1:2])),
+c("Log lik.", round(logliklihood,digit=2))
+)
+)
+
+
+
+weight<-ipwpoint(exposure = citybans_cp_dummy,
+family = "binomial",
+link = "logit",
+numerator = ~
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p ,
+denominator = ~manager+
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p+as.factor(year),
+data = statepanel)
+statepanel$weight2<-weight$ipw.weights
+
+
+
+results<- glm(numlobbyist~
+citybans_cp_lag+
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p,
+data = statepanel,
+weight =statepanel$weight2, family =quasipoisson)
+
+results1<-glm(numlobbyist~
+citybans_cp_lag+
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p,
+data = statepanel,
+weight =statepanel$weight2,family = poisson())
+logliklihood<- logLik(results1)/summary(results)$dispersion
+
+first<-summary(results, vcov = sandwich,
+cluster=c("fips","year"), df = Inf,
+diagnostics = TRUE, first=TRUE)
+
+modelformat3<-data.frame(rbind(
+cleardata(first$coefficients),
+c("Obs.", sum(first$df[1:2])),
+c("Log lik.", round(logliklihood,digit=2))
+)
+)
+
+
+results<-glm( numlobbyist~
+citybans_cp_lag+
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p,
+data = statepanel,family = quasipoisson())
+
+results1<-glm(numlobbyist~
+citybans_cp_lag+
+city_antisurv+
+gdpadj+
+popadj+
+democraticvote+
+logdronemanufacture+
+priorlaw+
+logapplication_p,
+data = statepanel,family = poisson())
+
+logliklihood<- logLik(results1)/summary(results)$dispersion
+
+first<-summary(results, vcov = sandwich,
+cluster=c("fips","year"), df = Inf,
+diagnostics = TRUE, first=TRUE)
+
+
+modelformat4<-data.frame(rbind(
+cleardata(first$coefficients),
+c("Obs.", sum(first$df[1:2])),
+c("Log lik.", round(logliklihood,digit=2))
+)
+)
+
+
+modelformat<-merge(modelformat1,modelformat2,
+by.x="X1", by.y ="X1", all=TRUE )
+
+modelformat<-merge(modelformat,modelformat3,
+by.x="X1", by.y ="X1", all=TRUE )
+
+
+modelformat<-merge(modelformat,modelformat4,
+by.x="X1", by.y ="X1", all=TRUE )
+
+
+modelformat<-data.frame(modelformat)
+modelformat<-data.frame(lapply(modelformat,as.character),stringsAsFactors=FALSE)
+
+modelformat[is.na(modelformat)] <- ""
+
+
+# In[ ]:
+
+
+###########(ɔ◔‿◔)ɔ ♥##################
+#set up what the variable should look like
+
+#IVmodelfixedyear
+#NonIVmodel
+#IVmodel
+
+
+Final<-modelformat
+Final[is.na(Final)] <- ""
+prefix <- "Model"
+suffix<-seq(1,(ncol(Final)-1))
+colnames(Final)<-c("label",paste(prefix,suffix))
+
+
+
+
+write.table(Final$label,
+file="variablenames_adj.csv",
+sep=",",
+row.names=FALSE)
+
+varname<-read.table("variablenames_set2.csv",sep=",",header=TRUE)
+
+printmodel<-merge(varname, Final,by.x = "label", by.y = "label",  all.x=TRUE, sort = F)   
+
+printmodel$label<-NULL
+colnames(printmodel)[1]<-" "
+
+title <-"Table Quasipoisson Estimation of Industry Association Lobbyists"
+footnote<-"Note: Robust standard errors in parentheses (clustered at state year level), *** p<0.001, ** p<0.01, * p<0.05, + p<0.1 (two-tailed)"
+basetable<-createtable(printmodel,title, footnote )
+
+basetable<-basetable%>%
+tab_spanner(
+label = "Non parametric CBPS",
+columns = c("Model 1", "Model 2")
+) %>%
+tab_spanner(
+label = "IPW",
+columns = c("Model 3")
+)%>%
+tab_spanner(
+label = "No weights",
+columns = c("Model 4")
+)
+
+basetable%>%
+gtsave("tab_3.html")
+
+

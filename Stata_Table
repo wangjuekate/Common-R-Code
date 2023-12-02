@@ -2,4 +2,10 @@
 est sto model1
 esttab model1  model2  model3 model4 using ier.rtf, b(3) se(3) sca(ll) star(* 0.05 ** 0.01 *** 0.001) eqlabels(`e(labels)') replace 
 
+estpost summarize age wage dum_race1 dum_race2 dum_race3 collgrad
+
+eststo summstats
+
+esttab summstats using table2.rtf, label replace cell("mean sd") 
+
 

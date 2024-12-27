@@ -1,7 +1,4 @@
-Notes. p-values are reported in parentheses. Standard errors are clustered by firm and all models include year fixed effects. 
-
-
-
+Notes. Standard errors are reported in parentheses and p-values are reported in square brackets. 
 
 library(xtable)
 library(gt)
@@ -9,20 +6,24 @@ library(tibble)
 
 cleardata<-function(input){
 names<-rownames(input)
-final<-matrix("",nrow=nrow(input)*2,ncol=2)
+final<-matrix("",nrow=nrow(input)*3,ncol=2)
 j=1
 for(i in 1:nrow(input)){
-st<-paste("(",format(round(as.numeric(as.matrix(input[i,4])),digits=3),nsmall=3),")",sep="")
 coe<-format(round(as.numeric(input[i,1]),digits=3),nsmall=3)
+st<-paste("(",format(round(as.numeric(as.matrix(input[i,3])),digits=3),nsmall=3),")",sep="")
+pvalue<-paste("[",format(round(as.numeric(as.matrix(input[i,5])),digits=3),nsmall=3),"]",sep="")
 
 final[j,1]<-paste(names[i],"1")
 final[j+1,1]<-paste(names[i],"2")
+final[j+2,1]<-paste(names[i],"3")
 final[j,2]<-coe
 final[j+1,2]<-st
-j<-j+2
+final[j+2,2]<-pvalue
+j<-j+3
 }
 return(final)
 }
+
 
 createtable<-function(island, island_title, island_source_note ){
 

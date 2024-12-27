@@ -69,5 +69,22 @@ return(gt_tbl)
     
 }
 
+finalresults <- summary(results)
+
+modelformat<-data.frame(rbind(
+                            cleardata(finalresults$coefficients)
+                             ) 
+                       )
+
+printmodel = modelformat
+printmodel$label<-NULL
+colnames(printmodel)[1]<-" "
+
+library(rempsyc)
+library(effectsize)
+library(flextable)
+
+mytable = nice_table(printmodel)
+flextable::save_as_docx(mytable,path = '/nicetable.docx')
 
 

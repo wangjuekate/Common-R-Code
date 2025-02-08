@@ -1,3 +1,30 @@
+##ggplot
+
+ggplot(data, aes(x = x, y = y, group = group)) +
+  geom_point(aes(shape = group), size = 3) +
+  geom_line(aes(linetype = group), linewidth = 0.8) +
+  scale_shape_manual(values = c(16, 1),labels = c("Mean - 1SD Patented algorithms", "Mean + 1SD Patented algorithms")) +  # filled and empty circles
+  scale_linetype_manual(values = c("solid", "dashed"),labels = c("Mean - 1SD Patented algorithms", "Mean + 1SD Patented algorithms")) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray90"),
+    axis.line = element_line(color = "black"),
+    text = element_text(color = "black"),
+    axis.text = element_text(color = "black"),
+    legend.position = "bottom"
+  ) +
+ labs(title = "Interaction Effects of Patented Algorithms",
+       x = "Other local orgs breached record",
+       y = "Tobins Q (log)",
+       shape = "Patented algorithms",
+       linetype = "Patented algorithms")
+
+#######################################
+
+
+
+
 x<-read.table("Interaction.csv",sep=",",header=TRUE)
 
 lineone<-x[which(x$protests==0),]

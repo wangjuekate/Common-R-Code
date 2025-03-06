@@ -1,0 +1,31 @@
+cleardata <- function(input) {
+  names <- rownames(input)
+  n <- nrow(input)
+  
+  # Create standard errors in parentheses
+  st_errors <- paste0("(", format(round(as.numeric(input[, 2]), digits=2), nsmall=2), ")")
+  
+  # Create coefficients with significance markers
+  coefficients <- sapply(1:n, function(i) {
+    p_val <- as.numeric(input[i, 4])
+    coef <- format(round(as.numeric(input[i, 1]), digits=2), nsmall=2)
+    
+    if (is.na(p_val)) return("NA")
+    if (p_val <= 0.001) return(paste0(coef, "***"))
+    if (p_val <= 0.01) return(paste0(coef, "**"))
+    if (p_val <= 0.05) return(paste0(coef, "*"))
+    if (p_val <= 0.1) return(paste0(coef, "+"))
+    return(coef)
+  })
+  
+  # Create result matrix
+  final <- matrix("", nrow=n*2, ncol=2)
+  idx <- seq(1, 2*n, by=2)
+  
+  final[idx, 1] <- paste0(names, "")
+  final[idx+1, 1] <- paste0(names, "2")
+  final[idx, 2] <- coefficients
+  final[idx+1, 2] <- st_errors
+  
+  return(final)
+}

@@ -1,57 +1,51 @@
+# Define variables
+listname <- c(
+  # DV
+  'monthpast', 'protestactivist_6m', 'protestissues_6m', 'social_focus', 'otherinvestors',
+  # Control variables
+  'protestnumber', 'averagescale', 'age', 'early_stage', 'investindustry',
+  'gdpaverage', 'totalpop', 'diversity'
+)
 
-listname<-c( #DV
-            'monthpast',
-            'protestactivist_6m',
-            'protestissues_6m',
-            'social_focus',
-            'otherinvestors',
-            
+# Set base path for files
+base_path <- "/Users/katewang/Library/CloudStorage/Dropbox/WangjuekateDropbox/Jiayi_Protest_Investment/TableFigure"
 
-
-            'protestnumber',
-            'averagescale',
-            'age',
-            'early_stage',
-            'investindustry',
-             'gdpaverage',
-            'totalpop',
-               'diversity'
-            )
-
-mcor<-format(round(cor(panel[,listname]),3),nsmall=3)
-mcor[upper.tri(mcor, diag=TRUE)]<-""
-
-library(pastecs)
-mm<-stat.desc(panel[,listname])
+# Calculate correlation matrix and summary statistics at once
 library(psych)
-mm<-describe(panel[,listname])
+mm <- describe(panel[, listname])
+mcor <- cor(panel[, listname], use = "pairwise.complete.obs")
 
+# Format correlation matrix (empty upper triangle)
+mcor_formatted <- format(round(mcor, 3), nsmall = 3)
+mcor_formatted[upper.tri(mcor_formatted, diag = TRUE)] <- ""
 
-summarystat<-format(round(cbind(mm$mean, mm$sd),digit =3),nsmall=3)
-summarystat<-data.frame(cbind(summarystat,mcor))
-colnames(summarystat)<-c("mean","sd",seq(1,nrow(summarystat)))
-summarystat$label<-rownames(summarystat)
+# Create combined summary table
+summarystat <- data.frame(
+  mean = format(round(mm$mean, 3), nsmall = 3),
+  sd = format(round(mm$sd, 3), nsmall = 3)
+)
 
-write.table(summarystat$label,
-            file="/Users/katewang/Library/CloudStorage/Dropbox/WangjuekateDropbox/Jiayi_Protest_Investment/TableFigure/variablenames_adj.csv",
-            sep=",",
-            row.names=FALSE)
+# Combine with correlation matrix
+summarystat <- cbind(summarystat, as.data.frame(mcor_formatted))
+colnames(summarystat)[3:ncol(summarystat)] <- seq(1, length(listname))
+summarystat$label <- rownames(summarystat)
 
-    
-varname<-read.table("/Users/katewang/Library/CloudStorage/Dropbox/WangjuekateDropbox/Jiayi_Protest_Investment/TableFigure/variablenames_summary.csv",sep=",",header=TRUE)
+# Write variable names to file
+write.csv(summarystat$label, file.path(base_path, "variablenames_adj.csv"), row.names = FALSE)
 
-printmodel<-merge(varname, summarystat,by.y = "label", 
-                  by.x = "x",  all.x=TRUE, sort = F)   
+# Read variable names
+varname <- read.csv(file.path(base_path, "variablenames_summary.csv"))
 
-printmodel$x<- rownames(printmodel)
+# Merge summary stats with variable names
+printmodel <- merge(varname, summarystat, by.x = "x", by.y = "label", all.x = TRUE, sort = FALSE)
+printmodel$x <- rownames(printmodel)
+colnames(printmodel)[1:2] <- c(" ", " ")
 
-colnames(printmodel)[1]<-" "
-colnames(printmodel)[2]<-" "
-
-test = xtable(printmodel)
-print(test,
+# Create and print LaTeX table
+library(xtable)
+print(xtable(printmodel), 
       type = "latex",
-      file = "/Users/katewang/Library/CloudStorage/Dropbox/WangjuekateDropbox/Jiayi_Protest_Investment/TableFigure/table_only.tex",  # This creates a file with just the table code
+      file = file.path(base_path, "table_only.tex"),
       include.rownames = FALSE,
       latex.environments = "center",
       sanitize.text.function = function(x) x)

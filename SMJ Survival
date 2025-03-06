@@ -1,0 +1,103 @@
+# Load required libraries (removing duplicates and unused ones)
+library(survival)
+library(tibble)
+library(gt)
+library(xtable)
+
+# Function to format model coefficients with standard errors and p-values
+cleardata <- function(coefs) {
+  names <- rownames(coefs)
+  result <- data.frame(matrix("", nrow = length(names) * 3, ncol = 2))
+  
+  for(i in seq_along(names)) {
+    idx <- (i-1)*3 + 1
+    result[idx, 1] <- paste(names[i], "1")
+    result[idx+1, 1] <- paste(names[i], "2")
+    result[idx+2, 1] <- paste(names[i], "3")
+    
+    result[idx, 2] <- format(round(coefs[i, 1], 3), nsmall = 3)
+    result[idx+1, 2] <- paste0("(", format(round(coefs[i, 3], 3), nsmall = 3), ")")
+    result[idx+2, 2] <- paste0("[", format(round(coefs[i, 5], 3), nsmall = 3), "]")
+  }
+  
+  return(result)
+}
+
+# Function to create GT table
+createtable <- function(island) {
+  gt(tibble(island), rowname_col = NULL, getOption("gt.row_group.sep", "")) %>%
+    tab_style(
+      style = list(
+        cell_borders(sides = c("top", "bottom", "left", "right"), 
+                     color = "white", weight = px(1))
+      ),
+      locations = cells_body(columns = everything(), rows = everything())
+    )
+}
+
+# Function to run model and process results
+run_model <- function(formula, model_number, printmodel = NULL) {
+  results <- coxph(formula, data = panel)
+  finalresults <- summary(results)
+  
+  modelformat <- data.frame(rbind(
+    cleardata(finalresults$coefficients),
+    c("Obs.", finalresults$n),
+    c("Log lik.", round(finalresults$loglik[2], 3))
+  ))
+  
+  if(is.null(printmodel)) {
+    return(modelformat)
+  } else {
+    return(merge(printmodel, modelformat, all = TRUE, by.x = 'X1', by.y = "X1"))
+  }
+}
+
+# Base variables for all models
+base_vars <- "investindustry + age + early_stage + protestnumber + averagescale + totalpop + gdpaverage + diversity"
+
+# Define model formulas
+model_formulas <- list(
+  as.formula(paste("Surv(monthpast, firstdeal) ~", base_vars)),
+  as.formula(paste("Surv(monthpast, firstdeal) ~", base_vars, "+ scope")),
+  as.formula(paste("Surv(monthpast, firstdeal) ~ scope + rankofsocialfocus + scope:rankofsocialfocus +", base_vars, "+ scope")),
+  as.formula(paste("Surv(monthpast, firstdeal) ~ scope + otherinvestors + scope:otherinvestors +", base_vars)),
+  as.formula(paste("Surv(monthpast, firstdeal) ~ scope + rankofsocialfocus + otherinvestors + scope:rankofsocialfocus + scope:otherinvestors +", base_vars))
+)
+
+# Run all models sequentially
+printmodel <- NULL
+for(i in seq_along(model_formulas)) {
+  printmodel <- run_model(model_formulas[[i]], i, printmodel)
+  printmodel$label <- NULL
+}
+
+# Process final table
+Final <- printmodel
+Final[is.na(Final)] <- ""
+
+# Set column names
+colnames(Final) <- c("label", paste("Model", seq_len(ncol(Final)-1)))
+
+# Output path
+output_dir <- "/Users/katewang/Library/CloudStorage/Dropbox/WangjuekateDropbox/Jiayi_Protest_Investment/TableFigure/"
+
+# Write variable names
+write.table(Final$label, file = paste0(output_dir, "variablenames_adj.csv"), 
+            sep = ",", row.names = FALSE)
+
+# Read variable names with display formatting
+varname <- read.table(paste0(output_dir, "maintable.csv"), sep = ",", header = TRUE)
+
+# Merge with formatted variable names
+printmodel <- merge(varname, Final, by.x = "x", by.y = "label", all.x = TRUE, sort = FALSE)
+printmodel$label <- NULL
+printmodel$x <- NULL
+
+# Output final table
+test <- xtable(printmodel)
+print(test, type = "latex", 
+      file = paste0(output_dir, "table_only.tex"),
+      include.rownames = FALSE,
+      latex.environments = "center",
+      sanitize.text.function = function(x) x)

@@ -1,188 +1,57 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
-
-library(stargazer)
-# Set directory - file path and import .csv-file 
-setwd("/Users/jjw6286/Downloads/Lori_Rewriten_Project/")
-
-statepanel<-read.table(
-    "StatePanel_20210331.csv",sep=",",
-    header=TRUE)
-
-write.table(statepanel,file="StatePanel_20210331.csv",sep=",",row.names=FALSE)
-
-
-
-library(foreign)
-library(pscl)
-require(ffbase)
-require(LaF)
-require(ETLUtils)
-library(xtable)
-require(biglm)
-library(psych)
-library(xtable)
-library(gt)
-library(tibble)
-
-cleardata<-function(input){
-names<-rownames(input)
-final<-matrix("",nrow=nrow(input)*2,ncol=2)
-j=1
-for(i in 1:nrow(input)){
-st<-paste("(",round(as.numeric(as.matrix(input[i,2])),digits=2),")",sep="")
-if(!is.na(input[i,4])){
-if(as.numeric(input[i,4])<=0.001){
-coe<-paste(round(as.numeric(input[i,1]),digits=2),"***",sep="")
-}
-if(as.numeric(input[i,4]<=0.01&as.numeric(input[i,4])>0.001 )){
-coe<-paste(round(as.numeric(input[i,1]),digits=2),"**",sep="")
-}
-if(as.numeric(input[i,4]<=0.05&&as.numeric(input[i,4])>0.01)){
-coe<-paste(round(as.numeric(input[i,1]),digits=2),"*",sep="")
-}
-if(as.numeric(input[i,4]<=0.1&&as.numeric(input[i,4])>0.05)){
-coe<-paste(round(as.numeric(input[i,1]),digits=2),"+",sep="")
-}
-if(as.numeric(input[i,4])>0.1){
-coe<-round(as.numeric(input[i,1]),digits=2)}
-}else{
-coe<-"NA"
-}
-final[j,1]<-paste(names[i],"1")
-final[j+1,1]<-paste(names[i],"2")
-final[j,2]<-coe
-final[j+1,2]<-st
-j<-j+2
-}
-return(final)
-}
-
-createtable<-function(island, island_title, island_source_note ){
-
-    
-islands_tbl <- 
-  tibble(
-    island
-  ) 
-
-gt_tbl <- gt(data = islands_tbl,
-             rowname_col = NULL,
-             getOption("gt.row_group.sep", ""))%>%tab_style(
-      style = list(
-        cell_borders(
-          sides = c("top", "bottom"),
-          color = "white",
-          weight = px(1)
-        ),
-        cell_borders(
-          sides = c("left", "right"),
-          color = "white",
-          weight = px(1)
-        )),
-          locations = cells_body(
-        columns = everything(),
-        rows = everything()
-      )
-      )
-
-gt_tbl <- 
-  gt_tbl %>%
-  tab_header(
-    title = island_title,
-  )
-
-
-gt_tbl <- gt_tbl %>%
-  tab_source_note(
-    source_note = island_source_note
-  ) 
-  
-return(gt_tbl) 
-    
-}
-
-
-# In[ ]:
-
-
-###########≧◠ᴥ◠≦#########table formating
-#summary table
-
 
 listname<-c( #DV
-            'citybans_cp',
-            'donation',
-            'numlobbyist',
-            'statepreempt_cdummy',
-    
-            #IV
-            'city_antisurv',
-            #instrument
-            'protests_5y',
-            'drone_military_base',
-            'manager',
-            'log_lobby_o_5y',
-            'log_nhobbyist',
-            #controls
+            'monthpast',
+            'protestactivist_6m',
+            'protestissues_6m',
+            'social_focus',
+            'otherinvestors',
             
-            'gdpadj',
-            'popadj',
-            'democraticvote',
-            'logdronemanufacture',
-             'priorlaw',
-             'homerule',
-             'logapplication_p'
+
+
+            'protestnumber',
+            'averagescale',
+            'age',
+            'early_stage',
+            'investindustry',
+             'gdpaverage',
+            'totalpop',
+               'diversity'
             )
 
-mcor<-round(cor(statepanel[,listname]),2)
+mcor<-format(round(cor(panel[,listname]),3),nsmall=3)
 mcor[upper.tri(mcor, diag=TRUE)]<-""
+
 library(pastecs)
-mm<-stat.desc(statepanel[,listname])
+mm<-stat.desc(panel[,listname])
 library(psych)
-mm<-describe(statepanel[,listname])
+mm<-describe(panel[,listname])
 
 
-summarystat<-round(cbind(mm$mean, mm$sd),digit =2)
+summarystat<-format(round(cbind(mm$mean, mm$sd),digit =3),nsmall=3)
 summarystat<-data.frame(cbind(summarystat,mcor))
 colnames(summarystat)<-c("mean","sd",seq(1,nrow(summarystat)))
 summarystat$label<-rownames(summarystat)
 
-write.table(rownames(summarystat),
-            file="variablenames_adj.csv",
+write.table(summarystat$label,
+            file="/Users/katewang/Library/CloudStorage/Dropbox/WangjuekateDropbox/Jiayi_Protest_Investment/TableFigure/variablenames_adj.csv",
             sep=",",
             row.names=FALSE)
+
     
-varname<-read.table("variablenames_summary.csv",sep=",",header=TRUE)
+varname<-read.table("/Users/katewang/Library/CloudStorage/Dropbox/WangjuekateDropbox/Jiayi_Protest_Investment/TableFigure/variablenames_summary.csv",sep=",",header=TRUE)
 
 printmodel<-merge(varname, summarystat,by.y = "label", 
                   by.x = "x",  all.x=TRUE, sort = F)   
 
-printmodel$x<-NULL
+printmodel$x<- rownames(printmodel)
+
 colnames(printmodel)[1]<-" "
+colnames(printmodel)[2]<-" "
 
-title <-"Table Summary Statistics and Correlations"
-footnote<-"Note: N= 350"
-basetable<-createtable(printmodel,title, footnote )
-
-basetable<-basetable%>%
-  tab_row_group(
-       group = "Control Variable",
-    rows = 11:17
-  )%>%
-  tab_row_group(
-        group = "Instrumental Variables",
-    rows = 6:10
-  )%>%
-  tab_row_group(
-        group = "Independent Variables",
-    rows = 5
-  ) %>%
-tab_row_group(
-    group = "Dependent Variables",
-    rows = 1:4
-  )
+test = xtable(printmodel)
+print(test,
+      type = "latex",
+      file = "/Users/katewang/Library/CloudStorage/Dropbox/WangjuekateDropbox/Jiayi_Protest_Investment/TableFigure/table_only.tex",  # This creates a file with just the table code
+      include.rownames = FALSE,
+      latex.environments = "center",
+      sanitize.text.function = function(x) x)

@@ -2,22 +2,55 @@
 library(ggplot2)
 
 # Create a grid of predictor values
-new_data <- expand.grid(
-  predictor1 = seq(min(mydata$predictor1), max(mydata$predictor1), length.out = 100),
-  predictor2 = levels(factor(mydata$predictor2))
+newdata <- data.frame(
+  socialgroup_dummy = c(0, 1,0,1),
+  misspercentage = c(0, 0,0.5, 0.5)
 )
 
-# Get predicted probabilities
-new_data$predicted <- predict(model, newdata = new_data, type = "response")
+  # Get means of all other variables and repeat them
+vars <- c( 'priorapproval',
+      'word_count_rep',
+      'firmage',
+      'firmsize',
+      'peerapproval')
 
-# Plot
-ggplot(new_data, aes(x = predictor1, y = predicted, color = predictor2)) +
-  geom_line() +
+for(var in vars) {
+  newdata[[var]] <- rep(mean(panel[[var]], na.rm = TRUE), 2)
+}
+
+
+# Get predicted probabilities
+newdata$predicted <- predict(results, newdata = newdata)
+
+newdata$misspercentage <-as.factor(newdata$misspercentage)
+
+
+library(ggplot2)
+
+
+
+ggplot(newdata, aes(x = socialgroup_dummy, y = predicted, group = misspercentage)) +
+  geom_line(aes(linetype = misspercentage), linewidth = 0.8) +
+    geom_point(aes(shape = misspercentage), size = 3) +
+      scale_shape_manual(values = c(16, 1),labels = c("Mean - 1SD Patented algorithms", "Mean + 1SD Patented algorithms")) +  # filled and empty circles
+
+  scale_linetype_manual(values = c("solid", "dashed"),labels = c("Mean - 1SD Patented algorithms", "Mean + 1SD Patented algorithms")) +
   theme_minimal() +
-  labs(title = "Interaction Effect",
-       x = "Predictor 1", 
-       y = "Predicted Probability",
-       color = "Predictor 2")
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray90"),
+    axis.line = element_line(color = "black"),
+    text = element_text(color = "black"),
+    axis.text = element_text(color = "black"),
+    legend.position = "bottom"
+  ) +
+ labs(title = "Interaction Effects of Patented Algorithms",
+       x = "Other local orgs breached record",
+       y = "Tobins Q (log)",
+       shape = "Patented algorithms",
+       linetype = "Patented algorithms")
+
+
 
 
 ##ggplot

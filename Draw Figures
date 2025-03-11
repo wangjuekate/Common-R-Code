@@ -1,3 +1,25 @@
+
+library(ggplot2)
+
+# Create a grid of predictor values
+new_data <- expand.grid(
+  predictor1 = seq(min(mydata$predictor1), max(mydata$predictor1), length.out = 100),
+  predictor2 = levels(factor(mydata$predictor2))
+)
+
+# Get predicted probabilities
+new_data$predicted <- predict(model, newdata = new_data, type = "response")
+
+# Plot
+ggplot(new_data, aes(x = predictor1, y = predicted, color = predictor2)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "Interaction Effect",
+       x = "Predictor 1", 
+       y = "Predicted Probability",
+       color = "Predictor 2")
+
+
 ##ggplot
 
 results<- coxph(Surv(monthpast, firstdeal) ~ 
@@ -9,12 +31,11 @@ library(survminer)
 
 # main effect
 sex_df <- with(panel,
-data.frame(
-scope = c(0.05,0.2),
-otherinvestors = rep(mean(otherinvestors, na.rm = TRUE), 2), 
-rankofsocialfocus = rep(mean(rankofsocialfocus, na.rm = TRUE),2),
+data.frame(otherinvestors = c(-1,-1, 3, 3), 
+scope = c(0.05,0.2,0.05,0.2),
 protestnumber=rep(mean(protestnumber, na.rm = TRUE), 2),
 averagescale=rep(mean(averagescale, na.rm = TRUE), 2),
+rankofsocialfocus = rep(mean(rankofsocialfocus, na.rm = TRUE),2),
 investindustry = rep(mean(investindustry, na.rm = TRUE), 2),
 age= rep(mean(age, na.rm = TRUE), 2),
 early_stage= rep(mean(early_stage ,na.rm = TRUE), 2),
@@ -26,7 +47,8 @@ diversity= rep(mean(diversity, na.rm = TRUE), 2)
                           )
                )
           
-fit <- survfit(results, newdata = sex_df)
+fit <- predict(results, newdata = sex_df)
+
 
 ggplot(data, aes(x = x, y = y, group = group)) +
   geom_point(aes(shape = group), size = 3) +

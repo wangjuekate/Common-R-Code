@@ -101,3 +101,72 @@ print(test, type = "latex",
       include.rownames = FALSE,
       latex.environments = "center",
       sanitize.text.function = function(x) x)
+
+
+
+run_model <- function(formula, model_number, printmodel) {
+  results <-femlm(forumla, panel, family =  "logit", cluster= 'year')
+  finalresults <- summary(results)
+  
+  modelformat <- data.frame(rbind(
+    cleardata(finalresults$coeftable),
+    c("Log lik.", round( logLik(results), 3))
+  ))
+  
+  if(is.null(printmodel)) {
+    return(modelformat)
+  } else {
+    return(merge(printmodel, modelformat, all = TRUE, by.x = 'X1', by.y = "X1"))
+  }
+}
+
+
+
+controllist = "+priorapproval+logfirmage+logfirmsize+ num_RC+ lobbyist "
+
+
+# Define model formulas
+model_formulas <- list(
+  as.formula(paste("approvaldummy_adj ~",controllist)),
+  as.formula(paste("approvaldummy_adj ~", "+socialgroup_dummy",controllist)),
+  as.formula(paste("approvaldummy_adj ~", "+congrunecy",controllist)),
+  as.formula(paste("approvaldummy_adj ~", "+exposure",controllist))
+)
+
+
+
+# Run all models sequentially
+printmodel <- NULL
+for(i in seq_along(model_formulas)) {
+  printmodel <- run_model(model_formulas[[i]], i, printmodel)
+  printmodel$label <- NULL
+}
+
+# Process final table
+Final <- printmodel
+Final[is.na(Final)] <- ""
+
+# Set column names
+colnames(Final) <- c("label", paste("Model", seq_len(ncol(Final)-1)))
+
+
+# Write variable names
+write.table(Final$label, file = file.path(outdir ,"variablenames_adj.csv"), 
+            sep = ",", row.names = FALSE)
+
+# Read variable names with display formatting
+varname <- read.table( file.path(outdir , "maintable.csv"), sep = ",", header = TRUE)
+
+# Merge with formatted variable names
+printmodel <- merge(varname, Final, by.x = "x", by.y = "label", all.x = TRUE, sort = FALSE)
+printmodel$label <- NULL
+printmodel$x <- NULL
+
+# Output final table
+test <- xtable(printmodel)
+print(test, type = "latex", 
+      file = file.path(outdir ,  "maintable1.tex"),
+      include.rownames = FALSE,
+      latex.environments = "center",
+      sanitize.text.function = function(x) x)
+

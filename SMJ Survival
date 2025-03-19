@@ -36,7 +36,7 @@ createtable <- function(island) {
 }
 
 # Function to run model and process results
-run_model <- function(formula, model_number, printmodel = NULL) {
+run_model <- function(formula, model_number, printmodel ) {
   results <- coxph(formula, data = panel)
   finalresults <- summary(results)
   
